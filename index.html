@@ -3,19 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>KINETIX — Body & FFMI Tracker</title>
+  <title>KINETIX — Body &amp; FFMI Tracker</title>
 
-  <!-- PWA Meta Tags for Android Chrome & iOS Home Screen Install -->
+  <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#090d16" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="KINETIX" />
-
-  <!-- Embedded Web App Manifest (Data URI for single-file PWA installability) -->
   <link rel="manifest" id="pwa-manifest" />
 
-  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
@@ -33,23 +31,14 @@
           },
           colors: {
             obsidian: '#090d16',
-            card: '#111827',
-            cardHover: '#1a2333',
-            vividEmerald: '#10b981',
-            vividCyan: '#06b6d4',
-            vividCoral: '#f43f5e',
-            vividAmber: '#f59e0b',
+            surface: '#111827',
           }
         }
       }
     };
   </script>
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-
   <style>
-    /* Custom scrollbar & touch refinements */
     body {
       background-color: #090d16;
       color: #f8fafc;
@@ -60,51 +49,49 @@
       filter: invert(0.85);
       cursor: pointer;
     }
-    .glass-panel {
-      background: rgba(17, 24, 39, 0.88);
+    .glass-card {
+      background: rgba(17, 24, 39, 0.9);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .vivid-glow-emerald {
+    .glow-emerald {
       box-shadow: 0 0 24px -6px rgba(16, 185, 129, 0.35);
     }
-    .vivid-glow-cyan {
-      box-shadow: 0 0 24px -6px rgba(6, 182, 212, 0.35);
-    }
-    .vivid-glow-coral {
+    .glow-rose {
       box-shadow: 0 0 24px -6px rgba(244, 63, 94, 0.35);
     }
-    /* Hide number input spinners for cleaner mobile keypad usage */
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      opacity: 0.6;
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
 </head>
-<body class="min-h-screen pb-24 selection:bg-emerald-500 selection:text-white">
+<body class="min-h-screen pb-24 selection:bg-emerald-500 selection:text-slate-950">
 
-  <!-- Toast Notification Banner (Replaces alert/confirm) -->
+  <!-- Toast Banner Container -->
   <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
 
-  <!-- Top App Bar -->
-  <header class="sticky top-0 z-30 glass-panel border-b border-slate-800/80 px-4 py-3">
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-30 glass-card border-b border-slate-800/80 px-4 py-3">
     <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 via-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
           <svg class="w-5 h-5 text-slate-950" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M14 7h7v7" />
           </svg>
         </div>
         <div>
           <h1 class="text-base font-extrabold tracking-tight text-white leading-none">KINETIX</h1>
-          <p class="text-[11px] font-medium text-slate-400 mt-0.5">Body &amp; Normalized FFMI</p>
+          <p class="text-[11px] font-medium text-slate-400 mt-0.5">Weight, Body Fat &amp; Norm. FFMI</p>
         </div>
       </div>
 
-      <!-- Height Quick Setting & CSV Actions -->
-      <div class="flex items-center gap-2">
-        <button id="btn-height-modal" type="button" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-semibold text-cyan-300 transition active:scale-95" title="Set Height for Normalized FFMI">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btn-height-modal" type="button" class="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-semibold text-cyan-300 transition active:scale-95" title="Set Height for Normalized FFMI">
           <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7l4-4m0 0l4 4m-4-4v18" />
           </svg>
@@ -127,24 +114,24 @@
     </div>
   </header>
 
-  <!-- Main Content Container -->
+  <!-- Main Workspace -->
   <main class="max-w-4xl mx-auto px-4 pt-4 space-y-5">
 
-    <!-- Sample Data Banner (Shown only when demo records are active) -->
+    <!-- Demo Dataset Banner -->
     <div id="sample-banner" class="hidden rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-500/30 px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2.5">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
-        <p class="text-xs text-amber-200 font-medium">Showing sample dataset so you can explore trends immediately.</p>
+        <p class="text-xs text-amber-200 font-medium">Sample records loaded so you can test charts and trends immediately.</p>
       </div>
       <button id="btn-clear-sample" type="button" class="shrink-0 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition active:scale-95">
         Clear Demo
       </button>
     </div>
 
-    <!-- Latest Metrics KPI Grid -->
-    <section aria-label="Latest Body Composition Metrics" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <!-- Weight KPI -->
-      <div class="glass-panel rounded-2xl p-3.5 relative overflow-hidden">
+    <!-- KPI Cards Grid -->
+    <section aria-label="Body Composition KPIs" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <!-- Weight -->
+      <div class="glass-card rounded-2xl p-3.5">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Weight</span>
           <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -153,11 +140,11 @@
           <span id="kpi-weight" class="text-xl sm:text-2xl font-extrabold font-mono text-white">--</span>
           <span class="text-xs font-semibold text-slate-400">kg</span>
         </div>
-        <p id="kpi-weight-sub" class="text-[11px] text-slate-400 mt-1 truncate">0.1 kg precision</p>
+        <p id="kpi-weight-sub" class="text-[11px] text-slate-400 mt-1 truncate">0.1 kg step</p>
       </div>
 
-      <!-- Body Fat % KPI -->
-      <div class="glass-panel rounded-2xl p-3.5 relative overflow-hidden">
+      <!-- Body Fat % -->
+      <div class="glass-card rounded-2xl p-3.5">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Body Fat</span>
           <span class="w-2 h-2 rounded-full bg-rose-400"></span>
@@ -166,11 +153,11 @@
           <span id="kpi-bf" class="text-xl sm:text-2xl font-extrabold font-mono text-white">--</span>
           <span class="text-xs font-semibold text-slate-400">%</span>
         </div>
-        <p id="kpi-bf-sub" class="text-[11px] text-slate-400 mt-1 truncate">0.5% precision</p>
+        <p id="kpi-bf-sub" class="text-[11px] text-slate-400 mt-1 truncate">0.5% step</p>
       </div>
 
-      <!-- Fat-Free Mass KPI -->
-      <div class="glass-panel rounded-2xl p-3.5 relative overflow-hidden">
+      <!-- Summary Fat-Free Mass (uses latest BF% + last value of weight MA) -->
+      <div class="glass-card rounded-2xl p-3.5">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Fat-Free Mass</span>
           <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
@@ -179,11 +166,11 @@
           <span id="kpi-ffm" class="text-xl sm:text-2xl font-extrabold font-mono text-cyan-300">--</span>
           <span class="text-xs font-semibold text-slate-400">kg</span>
         </div>
-        <p id="kpi-ffm-sub" class="text-[11px] text-slate-400 mt-1 truncate">Needs Weight &amp; BF</p>
+        <p id="kpi-ffm-sub" class="text-[11px] text-slate-400 mt-1 truncate">W-MA &times; (1 - BF)</p>
       </div>
 
-      <!-- Normalized FFMI KPI -->
-      <div class="glass-panel rounded-2xl p-3.5 relative overflow-hidden border-emerald-500/25">
+      <!-- Summary Normalized FFMI (uses latest BF% + last value of weight MA) -->
+      <div class="glass-card rounded-2xl p-3.5 border-emerald-500/25">
         <div class="flex items-center justify-between gap-1">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-300 truncate">Norm. FFMI</span>
           <span id="kpi-height-badge" class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-[10px] font-bold text-emerald-300 shrink-0">1.82m</span>
@@ -192,12 +179,12 @@
           <span id="kpi-ffmi" class="text-xl sm:text-2xl font-extrabold font-mono text-emerald-400">--</span>
           <span class="text-xs font-semibold text-slate-400">idx</span>
         </div>
-        <p id="kpi-ffmi-cat" class="text-[11px] text-slate-400 mt-1 truncate">Needs Weight &amp; BF</p>
+        <p id="kpi-ffmi-meta" class="text-[11px] text-slate-400 mt-1 truncate">Needs Weight MA &amp; BF</p>
       </div>
     </section>
 
-    <!-- Quick Entry Form Card -->
-    <section aria-label="Log New Measurement" class="glass-panel rounded-2xl p-4 sm:p-5">
+    <!-- Entry Form Card -->
+    <section aria-label="Log Measurement" class="glass-card rounded-2xl p-4 sm:p-5">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-bold text-white flex items-center gap-2">
           <span class="w-1.5 h-4 rounded-full bg-gradient-to-b from-emerald-400 to-cyan-400"></span>
@@ -209,21 +196,19 @@
       </div>
 
       <form id="entry-form" class="grid grid-cols-2 sm:grid-cols-12 gap-3 items-end">
-        <!-- Date Input -->
+        <!-- Date -->
         <div class="col-span-1 sm:col-span-3">
           <label for="input-date" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Date</label>
           <input id="input-date" type="date" required class="w-full h-11 px-3 rounded-xl bg-slate-900/90 border border-slate-700/90 text-sm font-mono text-white focus:outline-none focus:border-emerald-400 transition" />
         </div>
 
-        <!-- Hour Input (00:00 - 23:00) -->
+        <!-- Hour (00:00 - 23:00) -->
         <div class="col-span-1 sm:col-span-2">
           <label for="input-hour" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Hour</label>
-          <select id="input-hour" class="w-full h-11 px-2.5 rounded-xl bg-slate-900/90 border border-slate-700/90 text-sm font-mono text-white focus:outline-none focus:border-cyan-400 transition">
-            <!-- Populated 00:00 to 23:00 -->
-          </select>
+          <select id="input-hour" class="w-full h-11 px-2.5 rounded-xl bg-slate-900/90 border border-slate-700/90 text-sm font-mono text-white focus:outline-none focus:border-cyan-400 transition"></select>
         </div>
 
-        <!-- Weight Input (Optional independently, 0.1 kg precision) -->
+        <!-- Weight (optional independently, 0.1 kg precision) -->
         <div class="col-span-1 sm:col-span-2">
           <label for="input-weight" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Weight (opt)</label>
           <div class="relative">
@@ -232,7 +217,7 @@
           </div>
         </div>
 
-        <!-- Body Fat Input (Optional independently, 0.5% precision) -->
+        <!-- Body Fat % (optional independently, 0.5% precision) -->
         <div class="col-span-1 sm:col-span-3">
           <label for="input-bf" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Body Fat (opt)</label>
           <div class="relative">
@@ -241,7 +226,7 @@
           </div>
         </div>
 
-        <!-- Submit Button -->
+        <!-- Save Button -->
         <div class="col-span-2 sm:col-span-2">
           <button type="submit" id="btn-save-entry" class="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition active:scale-95 flex items-center justify-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -252,22 +237,20 @@
         </div>
       </form>
 
-      <!-- Live Calculation Preview Strip -->
-      <div id="live-preview-strip" class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+      <!-- Live Input Preview -->
+      <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
         <div class="flex flex-wrap items-center gap-3">
-          <span>Live FFM: <strong id="preview-ffm" class="font-mono text-cyan-300">-- kg</strong></span>
-          <span>Live Normalized FFMI: <strong id="preview-ffmi" class="font-mono text-emerald-400">--</strong></span>
+          <span>Entry FFM: <strong id="preview-ffm" class="font-mono text-cyan-300">-- kg</strong></span>
+          <span>Entry Norm. FFMI: <strong id="preview-ffmi" class="font-mono text-emerald-400">--</strong></span>
         </div>
         <span class="text-[11px] text-slate-500">Auto-snaps to 0.1 kg &amp; 0.5%</span>
       </div>
     </section>
 
-    <!-- Chart & Slope Tendency Card -->
-    <section aria-label="Analytics Chart and Slope Tendency" class="glass-panel rounded-2xl p-4 sm:p-5 space-y-4">
-      
-      <!-- Top Row: Metric Tabs + Tendency Indicator Badge -->
+    <!-- Chart & Two-Point MA Slope Tendency Section -->
+    <section aria-label="Trend Chart and Slope Tendency" class="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <!-- Metric Switcher (Weight, Body Fat, FFM, Normalized FFMI) -->
+        <!-- Metric Switcher -->
         <div class="flex p-1 rounded-xl bg-slate-900/95 border border-slate-800 overflow-x-auto no-scrollbar">
           <button type="button" data-metric="weight" class="metric-tab flex-1 px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap bg-emerald-500 text-slate-950">
             Weight (kg)
@@ -283,7 +266,7 @@
           </button>
         </div>
 
-        <!-- Slope-Based Tendency Indicator Card (Last Two MA Values) -->
+        <!-- Tendency Badge (Strictly Last Two Moving Average Values, ±4.5° Threshold) -->
         <div id="tendency-card" class="flex items-center justify-between sm:justify-start gap-3 px-3.5 py-2.5 rounded-xl bg-slate-900/95 border border-slate-700/80 transition-all">
           <div class="flex items-center gap-2.5">
             <div id="tendency-icon-box" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 shrink-0">
@@ -294,16 +277,15 @@
             <div>
               <div class="flex items-center gap-1.5">
                 <span id="tendency-label" class="text-sm font-extrabold text-white tracking-tight">No Change</span>
-                <span id="tendency-angle" class="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">0.00°</span>
+                <span id="tendency-angle" class="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">0.00&deg;</span>
               </div>
               <p class="text-[11px] text-slate-400 leading-tight mt-0.5">
-                Last 2 MA pts (<span id="tendency-threshold-note">&plusmn;4.5&deg;</span> rule)
+                Last 2 MA pts (&plusmn;4.5&deg; rule)
               </p>
             </div>
           </div>
 
-          <!-- Info Tooltip Button for Slope Normalization -->
-          <button id="btn-slope-info" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition" title="How slope angle is computed">
+          <button id="btn-slope-info" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition" title="How the ±4.5° slope is calculated">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -311,17 +293,16 @@
         </div>
       </div>
 
-      <!-- Collapsible Slope Math Explanation Drawer -->
+      <!-- Slope Math Info Drawer -->
       <div id="slope-info-drawer" class="hidden rounded-xl bg-slate-900/90 border border-cyan-500/25 p-3 text-xs text-slate-300 space-y-1">
-        <p class="font-bold text-cyan-300">How the &plusmn;4.5&deg; Last-Two-MA Slope Works:</p>
+        <p class="font-bold text-cyan-300">&plusmn;4.5&deg; Last-Two-MA Slope Rule</p>
         <p class="text-slate-400 leading-relaxed">
-          We evaluate strictly the <strong class="text-slate-200">last two Moving Average values</strong> (<code class="text-cyan-300">MA[n-1]</code> and <code class="text-cyan-300">MA[n]</code>) in the active window. Normalizing the delta by the window's metric scale gives angle <code class="text-cyan-300">&theta; = atan2(&Delta;y_norm, &Delta;x_norm) &times; (180/&pi;)</code>. Angles within <code class="text-emerald-300">[-4.5&deg;, +4.5&deg;]</code> indicate <strong>No Change</strong>.
+          Evaluates strictly the last two Moving Average values (<code class="text-cyan-300">MA[n-2]</code> and <code class="text-cyan-300">MA[n-1]</code>) in the selected window using <code class="text-cyan-300">&theta; = atan2(&Delta;y%, 1) &times; 180/&pi;</code>. Angles inside <code class="text-emerald-300">[-4.5&deg;, +4.5&deg;]</code> report <strong>No Change</strong>.
         </p>
       </div>
 
-      <!-- Second Row: Timeframe Selector + Moving Average Window Customizer -->
+      <!-- Timeframe Selector + Moving Average Window -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-        <!-- Window Selector -->
         <div class="flex items-center gap-1.5">
           <button type="button" data-range="7" class="range-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:text-white transition">Week</button>
           <button type="button" data-range="30" class="range-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 transition">Month</button>
@@ -329,7 +310,6 @@
           <button type="button" data-range="custom" class="range-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:text-white transition">Custom</button>
         </div>
 
-        <!-- Moving Average Window Input -->
         <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl">
           <span class="w-2.5 h-0.5 bg-amber-400 rounded-full"></span>
           <label for="input-ma-window" class="text-xs font-semibold text-slate-300">MA Window:</label>
@@ -338,7 +318,7 @@
         </div>
       </div>
 
-      <!-- Custom Date Range Inputs (Hidden unless Custom selected) -->
+      <!-- Custom Date Range Bar -->
       <div id="custom-range-bar" class="hidden grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800">
         <div>
           <label for="custom-start" class="block text-[11px] font-semibold text-slate-400 mb-1">Start Date</label>
@@ -350,18 +330,29 @@
         </div>
       </div>
 
-      <!-- Interactive Canvas Chart Container -->
-      <div class="relative w-full h-64 sm:h-80 pt-1">
-        <canvas id="metrics-chart"></canvas>
-        <div id="empty-chart-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-900/60 rounded-xl">
+      <!-- Interactive SVG Chart Area -->
+      <div id="chart-wrapper" class="relative w-full h-64 sm:h-80 rounded-xl bg-slate-950/60 border border-slate-800/70 overflow-hidden">
+        <div class="flex items-center justify-end gap-4 px-3 pt-2 text-[11px] font-semibold text-slate-300">
+          <span class="flex items-center gap-1.5">
+            <span id="legend-raw-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span id="legend-raw-label">Weight (kg)</span>
+          </span>
+          <span id="legend-ma-item" class="flex items-center gap-1.5">
+            <span class="w-3.5 h-0.5 bg-amber-400 inline-block"></span>
+            <span id="legend-ma-label">Moving Avg (3)</span>
+          </span>
+        </div>
+        <svg id="metrics-svg" class="w-full h-[calc(100%-26px)] select-none" role="img" aria-label="Body measurement and moving average chart"></svg>
+        <div id="chart-tooltip" class="hidden pointer-events-none absolute z-20 px-2.5 py-1.5 rounded-lg bg-slate-900/95 border border-slate-700 text-[11px] font-mono text-slate-100 shadow-xl"></div>
+        <div id="empty-chart-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-900/75">
           <p class="text-sm font-bold text-slate-300">No measurements in this window</p>
-          <p class="text-xs text-slate-500 mt-1">Log an entry above or expand your timeframe filter.</p>
+          <p class="text-xs text-slate-500 mt-1">Log an entry above or expand the selected timeframe.</p>
         </div>
       </div>
     </section>
 
-    <!-- Measurement History & Data Management Section -->
-    <section aria-label="Measurement History" class="glass-panel rounded-2xl p-4 sm:p-5 space-y-3">
+    <!-- History & Local CSV Section -->
+    <section aria-label="Recorded History and Local CSV" class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
@@ -369,10 +360,10 @@
             Recorded History
             <span id="history-count-badge" class="px-2 py-0.5 rounded-full bg-slate-800 text-[11px] font-mono text-slate-300">0</span>
           </h2>
-          <p class="text-[11px] text-slate-400 mt-0.5">CSV format: <code class="text-slate-300">timestamp,weight_kg,body_fat_pct,ffm_kg,normalized_ffmi</code></p>
+          <p class="text-[11px] text-slate-400 mt-0.5">CSV: <code class="text-slate-300">timestamp,weight_kg,body_fat_pct,ffm_kg,normalized_ffmi</code></p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <button id="btn-export-csv-bottom" type="button" class="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition active:scale-95">
             Export CSV
           </button>
@@ -382,16 +373,13 @@
         </div>
       </div>
 
-      <!-- Responsive History List -->
-      <div id="history-list" class="divide-y divide-slate-800/80 max-h-96 overflow-y-auto pr-1">
-        <!-- Populated dynamically -->
-      </div>
+      <div id="history-list" class="divide-y divide-slate-800/80 max-h-96 overflow-y-auto pr-1"></div>
     </section>
   </main>
 
   <!-- Height Settings Modal -->
   <div id="height-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-sm rounded-2xl p-5 border border-slate-700 shadow-2xl space-y-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl p-5 border border-slate-700 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-extrabold text-white">Athlete Height</h3>
         <button id="btn-close-height-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white bg-slate-800">
@@ -401,23 +389,21 @@
         </button>
       </div>
       <p class="text-xs text-slate-400 leading-relaxed">
-        Required to compute <strong class="text-emerald-300">Normalized FFMI</strong> (<code class="text-slate-200">FFMI + 6.1 &times; (1.8 &minus; height_m)</code>).
+        Used for <strong class="text-emerald-300">Normalized FFMI</strong> (<code class="text-slate-200">FFMI + 6.1 &times; (1.8 &minus; height_m)</code>).
       </p>
       <div>
-        <label for="input-height-cm" class="block text-xs font-semibold text-slate-300 mb-1.5">Height in Centimeters (cm)</label>
+        <label for="input-height-cm" class="block text-xs font-semibold text-slate-300 mb-1.5">Height (cm)</label>
         <input id="input-height-cm" type="number" step="0.5" min="100" max="250" value="182" class="w-full h-11 px-3 rounded-xl bg-slate-900 border border-slate-700 font-mono text-base font-bold text-white focus:outline-none focus:border-cyan-400" />
       </div>
-      <div class="flex justify-end gap-2 pt-1">
-        <button id="btn-save-height" type="button" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-extrabold text-sm shadow-lg transition active:scale-95">
-          Save Height
-        </button>
-      </div>
+      <button id="btn-save-height" type="button" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-extrabold text-sm shadow-lg transition active:scale-95">
+        Save Height
+      </button>
     </div>
   </div>
 
-  <!-- Confirm Delete / Clear Modal (No native confirm()) -->
+  <!-- Confirm Modal -->
   <div id="confirm-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-sm rounded-2xl p-5 border border-slate-700 shadow-2xl space-y-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl p-5 border border-slate-700 shadow-2xl space-y-4">
       <h3 id="confirm-title" class="text-base font-extrabold text-white">Confirm Action</h3>
       <p id="confirm-message" class="text-xs text-slate-300 leading-relaxed">Are you sure?</p>
       <div class="flex items-center gap-2.5 pt-1">
@@ -434,87 +420,78 @@
   <script>
     /**
      * KINETIX — Body & Normalized FFMI Progressive Web App
-     * Single-file architecture with localStorage persistence, precision rounding,
-     * moving average overlay, linear regression slope angle classifier (±2.25°),
-     * CSV import/export, and embedded PWA manifest + Service Worker.
      */
 
     // =========================================================================
-    // 1. PWA MANIFEST & OFFLINE SERVICE WORKER REGISTRATION
+    // 1. PWA MANIFEST & SERVICE WORKER
     // =========================================================================
     (function initPWA() {
       try {
-        const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#090d16"/><path d="M96 352l112-112 80 80 128-144" fill="none" stroke="#10b981" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/><path d="M320 176h96v96" fill="none" stroke="#06b6d4" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-        const iconUrl = 'data:image/svg+xml;base64,' + btoa(iconSvg);
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#090d16"/><path d="M96 352l112-112 80 80 128-144" fill="none" stroke="#10b981" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/><path d="M320 176h96v96" fill="none" stroke="#06b6d4" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        const iconUri = 'data:image/svg+xml;base64,' + btoa(svgIcon);
 
         const manifest = {
           name: 'KINETIX — Body & FFMI Tracker',
           short_name: 'KINETIX',
-          description: 'Minimalistic weight (0.1 kg), body fat (0.5%), and Normalized FFMI tracker.',
+          description: 'Weight (0.1 kg), body fat (0.5%), FFM, and Normalized FFMI tracker.',
           start_url: './',
           display: 'standalone',
           background_color: '#090d16',
           theme_color: '#090d16',
           orientation: 'portrait-primary',
           icons: [
-            { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
-            { src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+            { src: iconUri, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+            { src: iconUri, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
           ]
         };
 
-        const manifestLink = document.getElementById('pwa-manifest');
-        if (manifestLink) {
-          manifestLink.setAttribute(
+        const manifestEl = document.getElementById('pwa-manifest');
+        if (manifestEl) {
+          manifestEl.setAttribute(
             'href',
             'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest))
           );
         }
 
-        // Register lightweight inline Service Worker for offline shell support
         if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-          const swCode = `
-            const CACHE_NAME = 'kinetix-pwa-v1';
-            self.addEventListener('install', (e) => {
-              self.skipWaiting();
-            });
-            self.addEventListener('activate', (e) => {
-              e.waitUntil(self.clients.claim());
-            });
+          const swScript = `
+            const CACHE_NAME = 'kinetix-cache-v1';
+            self.addEventListener('install', () => self.skipWaiting());
+            self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
             self.addEventListener('fetch', (e) => {
               if (e.request.method !== 'GET') return;
               e.respondWith(
                 fetch(e.request)
                   .then((res) => {
-                    const clone = res.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then((c) => c.put(e.request, copy));
                     return res;
                   })
                   .catch(() => caches.match(e.request))
               );
             });
           `;
-          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const blob = new Blob([swScript], { type: 'application/javascript' });
           navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
         }
       } catch (err) {
-        console.warn('PWA initialization skipped:', err);
+        console.warn('PWA setup skipped:', err);
       }
     })();
 
     // =========================================================================
-    // 2. STATE & STORAGE MANAGEMENT
+    // 2. CONSTANTS & STATE
     // =========================================================================
     const STORAGE_KEYS = {
-      ENTRIES: 'kinetix_entries_v2',
-      SETTINGS: 'kinetix_settings_v2',
-      IS_DEMO: 'kinetix_is_demo_v2'
+      ENTRIES: 'kinetix_entries_v3',
+      SETTINGS: 'kinetix_settings_v3',
+      IS_DEMO: 'kinetix_is_demo_v3'
     };
 
     const SLOPE_THRESHOLD_DEG = 4.5;
 
     let state = {
-      // { timestamp: 'YYYY-MM-DD HH:00', weight: number|null, bf: number|null }
-      entries: [],
+      entries: [], // { timestamp: 'YYYY-MM-DD HH:00', weight: number|null, bf: number|null }
       settings: {
         heightCm: 182,
         maWindow: 3,
@@ -527,126 +504,123 @@
       editingTimestamp: null
     };
 
-    let chartInstance = null;
-    let confirmCallback = null;
+    // =========================================================================
+    // 3. PRECISION, FORMATTING & COMPOSITION MATH
+    // =========================================================================
+    const roundOneDec = (v) => Math.round(Number(v) * 10) / 10;
+    const roundHalf = (v) => Math.round(Number(v) * 2) / 2;
 
-    // Precision helpers
-    const roundWeight = (val) => Math.round(Number(val) * 10) / 10;
-    const roundBF = (val) => Math.round(Number(val) * 2) / 2; // Nearest 0.5%
-    const roundOneDec = (val) => Math.round(Number(val) * 10) / 10;
-
-    function getLocalTodayISO() {
-      const now = new Date();
-      const offset = now.getTimezoneOffset() * 60000;
-      return new Date(now.getTime() - offset).toISOString().split('T')[0];
+    function formatLocalDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
     }
 
-    function getCurrentHourPadded() {
-      return String(new Date().getHours()).padStart(2, '0');
-    }
-
-    function formatTimestamp(dateStr, hourStr) {
-      const h = String(hourStr ?? '08').padStart(2, '0');
-      return `${dateStr} ${h}:00`;
-    }
-
-    /**
-     * Normalizes incoming date or timestamp strings to 'YYYY-MM-DD HH:00'.
-     * Accepts 'YYYY-MM-DD', 'YYYY/MM/DD', 'YYYY-MM-DD HH:00', 'YYYY-MM-DDTHH:mm', etc.
-     */
-    function normalizeTimestampString(raw) {
-      if (!raw) return null;
-      const cleaned = String(raw).trim().replace(/\//g, '-').replace('T', ' ');
-      const match = cleaned.match(/^(\d{4}-\d{2}-\d{2})(?:\s+(\d{1,2})(?::\d{2}(?::\d{2})?)?)?$/);
+    function normalizeTimestamp(rawTs) {
+      if (!rawTs) return null;
+      const clean = String(rawTs).trim().replace('T', ' ');
+      const match = clean.match(/^(\d{4}-\d{2}-\d{2})(?:\s+(\d{1,2}))?/);
       if (!match) return null;
       const datePart = match[1];
-      const hourNum = match[2] !== undefined ? Math.min(23, Math.max(0, parseInt(match[2], 10))) : 8;
-      return `${datePart} ${String(hourNum).padStart(2, '0')}:00`;
+      const hr = match[2] !== undefined ? Math.min(23, Math.max(0, parseInt(match[2], 10))) : 8;
+      return `${datePart} ${String(hr).padStart(2, '0')}:00`;
     }
 
-    function shiftDateISO(baseISO, deltaDays) {
-      const [y, m, d] = baseISO.split('-').map(Number);
-      const dt = new Date(Date.UTC(y, m - 1, d + deltaDays));
-      return dt.toISOString().split('T')[0];
-    }
-
-    /**
-     * Compute Fat-Free Mass (FFM in kg) and Normalized FFMI when both Weight and Body Fat % are present:
-     * FFM = Weight * (1 - BF / 100)
-     * FFMI = FFM / (height_m^2)
-     * Normalized FFMI = FFMI + 6.1 * (1.8 - height_m)
-     */
-    function computeDerivedMetrics(weightKg, bfPct, heightCm) {
-      if (weightKg === null || weightKg === undefined || bfPct === null || bfPct === undefined) {
-        return { ffm: null, normFfmi: null };
+    function computeEntryComposition(weightKg, bfPct, heightCm) {
+      const hMeters = (Number(heightCm) || 182) / 100;
+      if (
+        typeof weightKg !== 'number' || !Number.isFinite(weightKg) || weightKg <= 0 ||
+        typeof bfPct !== 'number' || !Number.isFinite(bfPct) || bfPct < 0 || bfPct >= 100 ||
+        hMeters <= 0
+      ) {
+        return { ffmKg: null, normalizedFfmi: null };
       }
-      const hMeters = Math.max(0.5, Number(heightCm) / 100);
-      const ffm = weightKg * (1 - bfPct / 100);
-      const rawFfmi = ffm / (hMeters * hMeters);
-      const normFfmi = rawFfmi + 6.1 * (1.8 - hMeters);
+      const ffmKg = weightKg * (1 - bfPct / 100);
+      const rawFfmi = ffmKg / (hMeters * hMeters);
+      const normalizedFfmi = rawFfmi + 6.1 * (1.8 - hMeters);
       return {
-        ffm: roundOneDec(ffm),
-        normFfmi: roundOneDec(normFfmi)
+        ffmKg: Number(ffmKg.toFixed(2)),
+        normalizedFfmi: Number(normalizedFfmi.toFixed(2))
       };
     }
 
-    function classifyNormalizedFFMI(ffmi) {
-      if (ffmi === null || ffmi === undefined) return 'Needs Weight & BF';
-      if (ffmi < 18) return 'Below Average';
-      if (ffmi < 20) return 'Average / Fit';
-      if (ffmi < 22) return 'Above Average';
-      if (ffmi < 24) return 'Athletic / Advanced';
-      return 'Elite Natural Limit';
+    function getLatestValidValue(entriesList, field) {
+      for (let i = entriesList.length - 1; i >= 0; i--) {
+        const val = entriesList[i]?.[field];
+        if (typeof val === 'number' && Number.isFinite(val)) {
+          return { value: val, timestamp: entriesList[i].timestamp };
+        }
+      }
+      return { value: null, timestamp: null };
     }
 
-    function generateSampleEntries() {
-      const today = getLocalTodayISO();
-      return [
-        { timestamp: `${shiftDateISO(today, -28)} 07:00`, weight: 81.6, bf: 17.0 },
-        { timestamp: `${shiftDateISO(today, -24)} 08:00`, weight: 81.3, bf: null },
-        { timestamp: `${shiftDateISO(today, -20)} 07:00`, weight: 81.0, bf: 16.5 },
-        { timestamp: `${shiftDateISO(today, -16)} 08:00`, weight: 80.6, bf: 16.5 },
-        { timestamp: `${shiftDateISO(today, -12)} 07:00`, weight: 80.4, bf: null },
-        { timestamp: `${shiftDateISO(today, -9)} 08:00`,  weight: 80.1, bf: 16.0 },
-        { timestamp: `${shiftDateISO(today, -6)} 07:00`,  weight: 79.8, bf: 15.5 },
-        { timestamp: `${shiftDateISO(today, -3)} 08:00`,  weight: 79.5, bf: null },
-        { timestamp: `${shiftDateISO(today, -1)} 07:00`,  weight: 79.3, bf: 15.0 },
-        { timestamp: `${today} 08:00`,                    weight: 79.1, bf: 15.0 }
-      ];
+    function computeMovingAverage(values, windowSize) {
+      const w = Math.max(1, Math.floor(Number(windowSize) || 3));
+      return values.map((_, idx) => {
+        const start = Math.max(0, idx - w + 1);
+        const slice = values.slice(start, idx + 1);
+        const sum = slice.reduce((acc, v) => acc + v, 0);
+        return sum / slice.length;
+      });
+    }
+
+    function sortEntries() {
+      state.entries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    }
+
+    // =========================================================================
+    // 4. STORAGE & DEMO DATA
+    // =========================================================================
+    function generateDemoEntries() {
+      const now = new Date();
+      const list = [];
+      const baseWeights = [81.4, 81.2, 81.5, 81.0, 80.8, 80.9, 80.6, 80.4, 80.5, 80.2, 80.0, 79.8, 79.9, 79.6, 79.5];
+      const baseBFs = [16.5, null, 16.5, null, 16.0, null, 16.0, null, 15.5, null, 15.5, null, 15.0, null, 15.0];
+
+      for (let i = 0; i < baseWeights.length; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - (baseWeights.length - 1 - i) * 2);
+        list.push({
+          timestamp: `${formatLocalDate(d)} 08:00`,
+          weight: baseWeights[i],
+          bf: baseBFs[i]
+        });
+      }
+      return list;
     }
 
     function loadState() {
       try {
         const savedSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || 'null');
-        if (savedSettings) {
+        if (savedSettings && typeof savedSettings === 'object') {
           state.settings = { ...state.settings, ...savedSettings };
         }
 
         const rawEntries = localStorage.getItem(STORAGE_KEYS.ENTRIES);
-        if (rawEntries === null) {
-          state.entries = generateSampleEntries();
+        if (rawEntries !== null) {
+          const parsed = JSON.parse(rawEntries);
+          state.entries = Array.isArray(parsed)
+            ? parsed
+                .map((item) => ({
+                  timestamp: normalizeTimestamp(item.timestamp),
+                  weight: item.weight !== null && item.weight !== undefined && item.weight !== '' ? roundOneDec(item.weight) : null,
+                  bf: item.bf !== null && item.bf !== undefined && item.bf !== '' ? roundHalf(item.bf) : null
+                }))
+                .filter((item) => item.timestamp && (item.weight !== null || item.bf !== null))
+            : [];
+          state.isDemo = localStorage.getItem(STORAGE_KEYS.IS_DEMO) === 'true';
+        } else {
+          state.entries = generateDemoEntries();
           state.isDemo = true;
           saveState();
-        } else {
-          const parsed = JSON.parse(rawEntries) || [];
-          state.entries = parsed
-            .map((item) => {
-              const ts = normalizeTimestampString(item.timestamp || item.date);
-              if (!ts) return null;
-              const w = item.weight !== null && item.weight !== undefined && item.weight !== '' ? roundWeight(item.weight) : null;
-              const bf = item.bf !== null && item.bf !== undefined && item.bf !== '' ? roundBF(item.bf) : null;
-              if (w === null && bf === null) return null;
-              return { timestamp: ts, weight: w, bf };
-            })
-            .filter(Boolean);
-          state.isDemo = localStorage.getItem(STORAGE_KEYS.IS_DEMO) === 'true';
         }
-      } catch (e) {
-        console.error('Failed to load state:', e);
-        state.entries = generateSampleEntries();
+        sortEntries();
+      } catch (err) {
+        console.warn('Error loading localStorage state:', err);
+        state.entries = generateDemoEntries();
         state.isDemo = true;
       }
-      sortEntries();
     }
 
     function saveState() {
@@ -655,52 +629,13 @@
         localStorage.setItem(STORAGE_KEYS.ENTRIES, JSON.stringify(state.entries));
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
         localStorage.setItem(STORAGE_KEYS.IS_DEMO, String(state.isDemo));
-      } catch (e) {
-        showToast('Storage quota warning: unable to save locally.', 'error');
+      } catch (err) {
+        showToast('Unable to save to local storage.', 'error');
       }
     }
 
-    function sortEntries() {
-      state.entries.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-    }
-
     // =========================================================================
-    // 3. UI HELPERS (TOAST & CUSTOM CONFIRM MODAL)
-    // =========================================================================
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toast-container');
-      const el = document.createElement('div');
-      const palette = {
-        success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
-        info: 'bg-cyan-950/95 border-cyan-500/50 text-cyan-200',
-        error: 'bg-rose-950/95 border-rose-500/50 text-rose-200'
-      }[type] || 'bg-slate-900/95 border-slate-700 text-white';
-
-      el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-xs font-semibold flex items-center justify-between gap-2 transition-all duration-300 ${palette}`;
-      el.innerHTML = `<span>${message}</span>`;
-      container.appendChild(el);
-
-      setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(-8px)';
-        setTimeout(() => el.remove(), 300);
-      }, 3200);
-    }
-
-    function openConfirmModal(title, message, onConfirm) {
-      document.getElementById('confirm-title').textContent = title;
-      document.getElementById('confirm-message').textContent = message;
-      confirmCallback = onConfirm;
-      document.getElementById('confirm-modal').classList.remove('hidden');
-    }
-
-    function closeConfirmModal() {
-      document.getElementById('confirm-modal').classList.add('hidden');
-      confirmCallback = null;
-    }
-
-    // =========================================================================
-    // 4. MOVING AVERAGE & LAST-TWO-POINTS SLOPE ENGINE (±2.25° RULE)
+    // 5. FILTERING, SERIES & TWO-POINT MA TENDENCY (±4.5°)
     // =========================================================================
     function getFilteredEntries() {
       if (!state.entries.length) return [];
@@ -710,371 +645,372 @@
         const start = state.settings.customStart || '0000-01-01';
         const end = state.settings.customEnd || '9999-12-31';
         return state.entries.filter((e) => {
-          const datePart = e.timestamp.slice(0, 10);
-          return datePart >= start && datePart <= end;
+          const d = e.timestamp.slice(0, 10);
+          return d >= start && d <= end;
         });
       }
 
       const days = parseInt(range, 10) || 30;
-      const latestDate = state.entries[state.entries.length - 1].timestamp.slice(0, 10);
-      const cutoffDate = shiftDateISO(latestDate, -(days - 1));
-      return state.entries.filter((e) => e.timestamp.slice(0, 10) >= cutoffDate);
+      const latestTs = state.entries[state.entries.length - 1].timestamp;
+      const anchorDate = new Date(`${latestTs.slice(0, 10)}T00:00:00`);
+      anchorDate.setDate(anchorDate.getDate() - days);
+      const cutoffStr = formatLocalDate(anchorDate);
+
+      return state.entries.filter((e) => e.timestamp.slice(0, 10) >= cutoffStr);
     }
 
-    function extractMetricValue(entry, metricKey) {
-      switch (metricKey) {
-        case 'bf':
-          return entry.bf !== null && entry.bf !== undefined ? entry.bf : null;
-        case 'ffm':
-          return computeDerivedMetrics(entry.weight, entry.bf, state.settings.heightCm).ffm;
-        case 'ffmi':
-          return computeDerivedMetrics(entry.weight, entry.bf, state.settings.heightCm).normFfmi;
-        case 'weight':
-        default:
-          return entry.weight !== null && entry.weight !== undefined ? entry.weight : null;
-      }
-    }
+    function buildWindowSeries(filteredEntries, metricKey, maWindow) {
+      const points = [];
+      for (const entry of filteredEntries) {
+        const comp = computeEntryComposition(entry.weight, entry.bf, state.settings.heightCm);
+        let val = null;
+        if (metricKey === 'weight') val = entry.weight;
+        else if (metricKey === 'bf') val = entry.bf;
+        else if (metricKey === 'ffm') val = comp.ffmKg;
+        else if (metricKey === 'ffmi') val = comp.normalizedFfmi;
 
-    /**
-     * Filters valid non-null points for the selected metric, computes the Simple Moving Average
-     * across the full valid series so window edges retain historical context, and returns
-     * the slice inside the active timeframe.
-     */
-    function computeWindowSeriesWithMA(filteredEntries, metricKey, maWindow) {
-      const windowSize = Math.max(1, Math.min(60, parseInt(maWindow, 10) || 3));
-
-      // All valid entries across entire dataset for this metric
-      const allValid = state.entries
-        .map((e) => ({ timestamp: e.timestamp, val: extractMetricValue(e, metricKey) }))
-        .filter((item) => item.val !== null && !isNaN(item.val));
-
-      const maByTimestamp = new Map();
-      for (let i = 0; i < allValid.length; i++) {
-        const startIdx = Math.max(0, i - windowSize + 1);
-        let sum = 0;
-        let count = 0;
-        for (let j = startIdx; j <= i; j++) {
-          sum += allValid[j].val;
-          count++;
+        if (typeof val === 'number' && Number.isFinite(val)) {
+          points.push({ timestamp: entry.timestamp, raw: val });
         }
-        maByTimestamp.set(allValid[i].timestamp, Number((sum / count).toFixed(2)));
       }
-
-      return filteredEntries
-        .map((entry) => {
-          const val = extractMetricValue(entry, metricKey);
-          if (val === null || isNaN(val)) return null;
-          return {
-            timestamp: entry.timestamp,
-            raw: val,
-            ma: maByTimestamp.get(entry.timestamp) ?? val
-          };
-        })
-        .filter(Boolean);
+      if (!points.length) return [];
+      const maVals = computeMovingAverage(points.map((p) => p.raw), maWindow);
+      return points.map((p, i) => ({ ...p, ma: maVals[i] }));
     }
 
-    /**
-     * Tendency indicator strictly using the LAST TWO values of the Moving Average:
-     * MA[n-2] and MA[n-1].
-     * Computes angle theta = atan2(deltaY_norm, deltaX_norm) * (180 / PI) in degrees,
-     * where deltaY_norm is percentage shift relative to MA[n-2]
-     * and deltaX_norm = 1 step, calibrated so ±4.5° cleanly separates subtle noise
-     * from a meaningful directional move.
-     */
-    function computeSlopeTendency(seriesPoints) {
-      if (!seriesPoints || seriesPoints.length < 2) {
-        return { angleDeg: 0, status: 'No Change', direction: 'flat' };
+    function computeLastTwoMATendency(series) {
+      if (!Array.isArray(series) || series.length < 2) {
+        return { status: 'neutral', label: 'No Change', angleDeg: 0, delta: 0 };
+      }
+      const prev = series[series.length - 2].ma;
+      const curr = series[series.length - 1].ma;
+      if (!Number.isFinite(prev) || !Number.isFinite(curr) || prev === 0) {
+        return { status: 'neutral', label: 'No Change', angleDeg: 0, delta: 0 };
       }
 
-      const prevMA = seriesPoints[seriesPoints.length - 2].ma;
-      const lastMA = seriesPoints[seriesPoints.length - 1].ma;
-
-      if (prevMA === 0 || prevMA === null || lastMA === null) {
-        return { angleDeg: 0, status: 'No Change', direction: 'flat' };
-      }
-
-      // Percentage delta between the last two MA points over 1 step (deltaX = 1)
-      const deltaYNorm = ((lastMA - prevMA) / Math.abs(prevMA)) * 100;
-      const deltaXNorm = 1;
-      const angleDeg = Math.atan2(deltaYNorm, deltaXNorm) * (180 / Math.PI);
+      const delta = curr - prev;
+      const pctDelta = (delta / Math.abs(prev)) * 100;
+      const angleDeg = (Math.atan2(pctDelta, 1) * 180) / Math.PI;
 
       if (angleDeg > SLOPE_THRESHOLD_DEG) {
-        return { angleDeg, status: 'Increase', direction: 'up' };
-      } else if (angleDeg < -SLOPE_THRESHOLD_DEG) {
-        return { angleDeg, status: 'Decrease', direction: 'down' };
-      } else {
-        return { angleDeg, status: 'No Change', direction: 'flat' };
+        return { status: 'increase', label: 'Increase', angleDeg, delta };
       }
+      if (angleDeg < -SLOPE_THRESHOLD_DEG) {
+        return { status: 'decrease', label: 'Decrease', angleDeg, delta };
+      }
+      return { status: 'neutral', label: 'No Change', angleDeg, delta };
     }
 
     // =========================================================================
-    // 5. RENDERING: KPIs, TENDENCY BADGE, CHART, AND HISTORY LIST
+    // 6. UI RENDERERS (KPIs, TENDENCY, CHART, HISTORY)
     // =========================================================================
     function renderKPIs() {
-      const hMeters = (state.settings.heightCm / 100).toFixed(2);
+      const latestWeight = getLatestValidValue(state.entries, 'weight');
+      const latestBF = getLatestValidValue(state.entries, 'bf');
+
+      const weightPoints = state.entries
+        .filter((e) => typeof e.weight === 'number' && Number.isFinite(e.weight))
+        .map((e) => e.weight);
+      const weightMA = weightPoints.length ? computeMovingAverage(weightPoints, state.settings.maWindow) : [];
+      const lastWeightMA = weightMA.length ? weightMA[weightMA.length - 1] : null;
+      const weightRef = lastWeightMA !== null ? lastWeightMA : latestWeight.value;
+
+      const summaryComp = computeEntryComposition(weightRef, latestBF.value, state.settings.heightCm);
+
+      document.getElementById('kpi-weight').textContent =
+        latestWeight.value !== null ? latestWeight.value.toFixed(1) : '--';
+      document.getElementById('kpi-weight-sub').textContent =
+        lastWeightMA !== null ? `MA(${state.settings.maWindow}): ${lastWeightMA.toFixed(1)} kg` : '0.1 kg step';
+
+      document.getElementById('kpi-bf').textContent =
+        latestBF.value !== null ? latestBF.value.toFixed(1) : '--';
+      document.getElementById('kpi-bf-sub').textContent =
+        latestBF.timestamp ? latestBF.timestamp : '0.5% step';
+
+      document.getElementById('kpi-ffm').textContent =
+        summaryComp.ffmKg !== null ? summaryComp.ffmKg.toFixed(1) : '--';
+      document.getElementById('kpi-ffm-sub').textContent =
+        weightRef !== null && latestBF.value !== null
+          ? `${weightRef.toFixed(1)}kg × (1 - ${latestBF.value.toFixed(1)}%)`
+          : 'W-MA × (1 - BF)';
+
+      const hMeters = ((Number(state.settings.heightCm) || 182) / 100).toFixed(2);
       document.getElementById('header-height-label').textContent = `${state.settings.heightCm} cm`;
       document.getElementById('kpi-height-badge').textContent = `${hMeters}m`;
 
-      // Find latest entry that has weight, latest that has BF, and latest that has both for FFM & Normalized FFMI
-      const latestWeightEntry = [...state.entries].reverse().find((e) => e.weight !== null);
-      const latestBfEntry = [...state.entries].reverse().find((e) => e.bf !== null);
-      const latestPairEntry = [...state.entries].reverse().find((e) => e.weight !== null && e.bf !== null);
-
-      if (latestWeightEntry) {
-        document.getElementById('kpi-weight').textContent = latestWeightEntry.weight.toFixed(1);
-        document.getElementById('kpi-weight-sub').textContent = latestWeightEntry.timestamp;
-      } else {
-        document.getElementById('kpi-weight').textContent = '--';
-        document.getElementById('kpi-weight-sub').textContent = '0.1 kg precision';
-      }
-
-      if (latestBfEntry) {
-        document.getElementById('kpi-bf').textContent = latestBfEntry.bf.toFixed(1);
-        document.getElementById('kpi-bf-sub').textContent = latestBfEntry.timestamp;
-      } else {
-        document.getElementById('kpi-bf').textContent = '--';
-        document.getElementById('kpi-bf-sub').textContent = '0.5% precision';
-      }
-
-      if (latestPairEntry) {
-        const { ffm, normFfmi } = computeDerivedMetrics(latestPairEntry.weight, latestPairEntry.bf, state.settings.heightCm);
-        const fatMass = roundOneDec(latestPairEntry.weight - ffm);
-        document.getElementById('kpi-ffm').textContent = ffm.toFixed(1);
-        document.getElementById('kpi-ffm-sub').textContent = `Fat mass: ${fatMass.toFixed(1)} kg`;
-        document.getElementById('kpi-ffmi').textContent = normFfmi.toFixed(1);
-        document.getElementById('kpi-ffmi-cat').textContent = classifyNormalizedFFMI(normFfmi);
-      } else {
-        document.getElementById('kpi-ffm').textContent = '--';
-        document.getElementById('kpi-ffm-sub').textContent = 'Needs Weight & BF';
-        document.getElementById('kpi-ffmi').textContent = '--';
-        document.getElementById('kpi-ffmi-cat').textContent = 'Needs Weight & BF';
-      }
+      document.getElementById('kpi-ffmi').textContent =
+        summaryComp.normalizedFfmi !== null ? summaryComp.normalizedFfmi.toFixed(2) : '--';
+      document.getElementById('kpi-ffmi-meta').textContent =
+        weightRef !== null && latestBF.value !== null
+          ? `W-MA ${weightRef.toFixed(1)}kg · BF ${latestBF.value.toFixed(1)}%`
+          : 'Needs Weight MA & BF';
     }
 
-    function renderTendencyIndicator(tendency, metricKey) {
+    function renderTendency(tendency, metricKey) {
       const card = document.getElementById('tendency-card');
       const iconBox = document.getElementById('tendency-icon-box');
       const svg = document.getElementById('tendency-svg');
       const label = document.getElementById('tendency-label');
-      const angleBadge = document.getElementById('tendency-angle');
+      const angle = document.getElementById('tendency-angle');
 
-      const formattedAngle = `${tendency.angleDeg >= 0 ? '+' : ''}${tendency.angleDeg.toFixed(2)}°`;
-      angleBadge.textContent = formattedAngle;
-      label.textContent = tendency.status;
+      const isBfMetric = metricKey === 'bf';
+      const unitMap = { weight: ' kg', bf: '%', ffm: ' kg', ffmi: '' };
+      const decMap = { weight: 2, bf: 2, ffm: 2, ffmi: 2 };
+      const unit = unitMap[metricKey] ?? '';
+      const dec = decMap[metricKey] ?? 2;
 
-      // Reset classes
-      card.classList.remove('vivid-glow-emerald', 'vivid-glow-coral', 'border-emerald-500/40', 'border-rose-500/40', 'border-cyan-500/40');
+      const sign = tendency.delta > 0 ? '+' : '';
+      angle.textContent = `${sign}${tendency.delta.toFixed(dec)}${unit}`;
+      label.textContent = tendency.label;
 
-      // For Body Fat, decrease is visually emerald & increase is coral; for Weight/FFM/FFMI, increase is emerald & decrease is coral
-      const isPositiveGood = metricKey !== 'bf';
+      card.classList.remove('glow-emerald', 'glow-rose', 'border-emerald-500/40', 'border-rose-500/40', 'border-slate-700/80');
+      iconBox.className = 'w-9 h-9 rounded-lg flex items-center justify-center shrink-0';
 
-      if (tendency.direction === 'up') {
-        const good = isPositiveGood;
-        card.classList.add(good ? 'vivid-glow-emerald' : 'vivid-glow-coral', good ? 'border-emerald-500/40' : 'border-rose-500/40');
-        iconBox.className = `w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${good ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
-        label.className = `text-sm font-extrabold tracking-tight ${good ? 'text-emerald-300' : 'text-rose-300'}`;
-        angleBadge.className = `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${good ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`;
-        svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />`;
-      } else if (tendency.direction === 'down') {
-        const good = !isPositiveGood;
-        card.classList.add(good ? 'vivid-glow-emerald' : 'vivid-glow-coral', good ? 'border-emerald-500/40' : 'border-rose-500/40');
-        iconBox.className = `w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${good ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
-        label.className = `text-sm font-extrabold tracking-tight ${good ? 'text-emerald-300' : 'text-rose-300'}`;
-        angleBadge.className = `font-mono text-xs font-bold px-1.5 py-0.5 rounded ${good ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`;
-        svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10M17 17H8M17 17V8" />`;
+      if (tendency.status === 'increase') {
+        const good = !isBfMetric;
+        card.classList.add(good ? 'glow-emerald' : 'glow-rose', good ? 'border-emerald-500/40' : 'border-rose-500/40');
+        iconBox.classList.add(good ? 'bg-emerald-500/20' : 'bg-rose-500/20', good ? 'text-emerald-400' : 'text-rose-400');
+        svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 19L19 5M9 5h10v10" />';
+      } else if (tendency.status === 'decrease') {
+        const good = isBfMetric;
+        card.classList.add(good ? 'glow-emerald' : 'glow-rose', good ? 'border-emerald-500/40' : 'border-rose-500/40');
+        iconBox.classList.add(good ? 'bg-emerald-500/20' : 'bg-rose-500/20', good ? 'text-emerald-400' : 'text-rose-400');
+        svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 5l14 14M19 9v10H9" />';
       } else {
-        card.classList.add('border-cyan-500/30');
-        iconBox.className = 'w-9 h-9 rounded-lg bg-cyan-500/15 text-cyan-300 flex items-center justify-center shrink-0';
-        label.className = 'text-sm font-extrabold tracking-tight text-cyan-200';
-        angleBadge.className = 'font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300';
-        svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />`;
+        card.classList.add('border-slate-700/80');
+        iconBox.classList.add('bg-slate-800', 'text-slate-300');
+        svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />';
       }
     }
 
-    function renderChart() {
+    function renderSVGChart() {
       const metricKey = state.settings.activeMetric;
+      const showMA = true;
       const filtered = getFilteredEntries();
-      const series = computeWindowSeriesWithMA(filtered, metricKey, state.settings.maWindow);
-      const tendency = computeSlopeTendency(series);
+      const series = buildWindowSeries(filtered, metricKey, state.settings.maWindow);
+      const tendency = computeLastTwoMATendency(series);
 
-      renderTendencyIndicator(tendency, metricKey);
+      renderTendency(tendency, metricKey);
 
+      const meta = {
+        weight: { label: 'Weight (kg)', stroke: '#10b981', dotClass: 'bg-emerald-400', unit: 'kg', dec: 1 },
+        bf:     { label: 'Body Fat (%)', stroke: '#f43f5e', dotClass: 'bg-rose-400', unit: '%', dec: 1 },
+        ffm:    { label: 'Fat-Free Mass (kg)', stroke: '#06b6d4', dotClass: 'bg-cyan-400', unit: 'kg', dec: 1 },
+        ffmi:   { label: 'Normalized FFMI', stroke: '#a855f7', dotClass: 'bg-purple-400', unit: '', dec: 2 }
+      }[metricKey] || { label: 'Weight (kg)', stroke: '#10b981', dotClass: 'bg-emerald-400', unit: 'kg', dec: 1 };
+
+      document.getElementById('legend-raw-label').textContent = meta.label;
+      document.getElementById('legend-raw-dot').className = `w-2.5 h-2.5 rounded-full ${meta.dotClass}`;
+      const legendMA = document.getElementById('legend-ma-item');
+      legendMA.classList.toggle('hidden', !showMA);
+      document.getElementById('legend-ma-label').textContent = `Moving Avg (${state.settings.maWindow})`;
+
+      const svg = document.getElementById('metrics-svg');
+      const wrapper = document.getElementById('chart-wrapper');
+      const tooltip = document.getElementById('chart-tooltip');
       const emptyOverlay = document.getElementById('empty-chart-overlay');
+
+      tooltip.classList.add('hidden');
+      svg.innerHTML = '';
+
       if (!series.length) {
         emptyOverlay.classList.remove('hidden');
+        return;
+      }
+      emptyOverlay.classList.add('hidden');
+
+      const rect = svg.getBoundingClientRect();
+      const wrapRect = wrapper.getBoundingClientRect();
+      const width = Math.max(300, Math.round(rect.width || wrapRect.width || wrapper.clientWidth || 640));
+      const height = Math.max(180, Math.round(rect.height || ((wrapRect.height || wrapper.clientHeight || 300) - 26)));
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+      const padLeft = 46;
+      const padRight = 16;
+      const padTop = 14;
+      const padBottom = 28;
+      const plotW = Math.max(40, width - padLeft - padRight);
+      const plotH = Math.max(40, height - padTop - padBottom);
+
+      const allVals = showMA ? series.flatMap((d) => [d.raw, d.ma]) : series.map((d) => d.raw);
+      let minVal = Math.min(...allVals);
+      let maxVal = Math.max(...allVals);
+      if (!Number.isFinite(minVal) || !Number.isFinite(maxVal)) {
+        emptyOverlay.classList.remove('hidden');
+        return;
+      }
+      if (minVal === maxVal) {
+        minVal -= 1;
+        maxVal += 1;
       } else {
-        emptyOverlay.classList.add('hidden');
+        const pad = (maxVal - minVal) * 0.12;
+        minVal -= pad;
+        maxVal += pad;
       }
 
-      const metricMeta = {
-        weight: { label: 'Weight (kg)', color: '#10b981', fill: 'rgba(16, 185, 129, 0.14)', unit: 'kg', decimals: 1 },
-        bf:     { label: 'Body Fat (%)', color: '#f43f5e', fill: 'rgba(244, 63, 94, 0.14)', unit: '%', decimals: 1 },
-        ffm:    { label: 'Fat-Free Mass (kg)', color: '#06b6d4', fill: 'rgba(6, 182, 212, 0.14)', unit: 'kg', decimals: 1 },
-        ffmi:   { label: 'Normalized FFMI', color: '#a855f7', fill: 'rgba(168, 85, 247, 0.14)', unit: '', decimals: 1 }
-      }[metricKey];
+      const xAt = (idx) => {
+        if (series.length === 1) return padLeft + plotW / 2;
+        return padLeft + (idx / (series.length - 1)) * plotW;
+      };
+      const yAt = (val) => padTop + (1 - (val - minVal) / (maxVal - minVal)) * plotH;
 
-      // Compact label: MM-DD HHh
-      const labels = series.map((p) => `${p.timestamp.slice(5, 10)} ${p.timestamp.slice(11, 13)}h`);
-      const rawData = series.map((p) => p.raw);
-      const maData = series.map((p) => p.ma);
+      const ns = 'http://www.w3.org/2000/svg';
+      const createEl = (tag, attrs = {}) => {
+        const el = document.createElementNS(ns, tag);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      };
 
-      const ctx = document.getElementById('metrics-chart').getContext('2d');
-      if (chartInstance) {
-        chartInstance.destroy();
+      // Horizontal grid lines & Y labels
+      const ticks = 4;
+      for (let t = 0; t <= ticks; t++) {
+        const ratio = t / ticks;
+        const yPos = padTop + ratio * plotH;
+        const valLabel = (maxVal - ratio * (maxVal - minVal)).toFixed(meta.dec);
+
+        svg.appendChild(createEl('line', {
+          x1: padLeft,
+          y1: yPos,
+          x2: width - padRight,
+          y2: yPos,
+          stroke: 'rgba(148, 163, 184, 0.12)',
+          'stroke-dasharray': '3 3'
+        }));
+
+        const txt = createEl('text', {
+          x: padLeft - 6,
+          y: yPos + 3,
+          fill: '#94a3b8',
+          'font-size': '10',
+          'font-family': 'JetBrains Mono, monospace',
+          'text-anchor': 'end'
+        });
+        txt.textContent = valLabel;
+        svg.appendChild(txt);
       }
 
-      chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: metricMeta.label,
-              data: rawData,
-              borderColor: metricMeta.color,
-              backgroundColor: metricMeta.fill,
-              borderWidth: 2.5,
-              pointRadius: series.length > 45 ? 2 : 4,
-              pointHoverRadius: 6,
-              pointBackgroundColor: metricMeta.color,
-              pointBorderColor: '#090d16',
-              pointBorderWidth: 1.5,
-              tension: 0.25,
-              fill: true,
-              order: 2
-            },
-            {
-              label: `Moving Avg (${state.settings.maWindow})`,
-              data: maData,
-              borderColor: '#f59e0b',
-              backgroundColor: 'transparent',
-              borderWidth: 2.5,
-              borderDash: [5, 4],
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              pointBackgroundColor: '#f59e0b',
-              tension: 0.35,
-              fill: false,
-              order: 1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              align: 'end',
-              labels: {
-                color: '#cbd5e1',
-                boxWidth: 12,
-                boxHeight: 12,
-                usePointStyle: true,
-                font: { family: 'Inter', size: 11, weight: '600' }
-              }
-            },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              titleColor: '#f8fafc',
-              bodyColor: '#e2e8f0',
-              borderColor: 'rgba(148, 163, 184, 0.25)',
-              borderWidth: 1,
-              padding: 10,
-              cornerRadius: 10,
-              titleFont: { family: 'JetBrains Mono', size: 12 },
-              bodyFont: { family: 'JetBrains Mono', size: 12 },
-              callbacks: {
-                title: (items) => {
-                  const idx = items[0]?.dataIndex ?? 0;
-                  return series[idx] ? series[idx].timestamp : '';
-                },
-                label: (ctxItem) => {
-                  const val = Number(ctxItem.raw).toFixed(ctxItem.datasetIndex === 1 ? 2 : metricMeta.decimals);
-                  return ` ${ctxItem.dataset.label}: ${val} ${metricMeta.unit}`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(148, 163, 184, 0.08)' },
-              ticks: {
-                color: '#94a3b8',
-                maxRotation: 0,
-                autoSkip: true,
-                maxTicksLimit: 7,
-                font: { family: 'JetBrains Mono', size: 10 }
-              }
-            },
-            y: {
-              grid: { color: 'rgba(148, 163, 184, 0.08)' },
-              ticks: {
-                color: '#94a3b8',
-                font: { family: 'JetBrains Mono', size: 10 },
-                callback: (v) => Number(v).toFixed(1)
-              }
-            }
-          }
+      // X-axis labels (up to 5 evenly spaced)
+      const labelStep = Math.max(1, Math.ceil((series.length - 1) / 4));
+      series.forEach((pt, idx) => {
+        if (idx === 0 || idx === series.length - 1 || idx % labelStep === 0) {
+          const xPos = xAt(idx);
+          const lbl = createEl('text', {
+            x: xPos,
+            y: height - 8,
+            fill: '#94a3b8',
+            'font-size': '10',
+            'font-family': 'JetBrains Mono, monospace',
+            'text-anchor': 'middle'
+          });
+          lbl.textContent = `${pt.timestamp.slice(5, 10)} ${pt.timestamp.slice(11, 13)}h`;
+          svg.appendChild(lbl);
         }
+      });
+
+      // Raw data polyline
+      const rawPointsStr = series.map((pt, i) => `${xAt(i).toFixed(1)},${yAt(pt.raw).toFixed(1)}`).join(' ');
+      svg.appendChild(createEl('polyline', {
+        fill: 'none',
+        stroke: meta.stroke,
+        'stroke-width': '2.5',
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        points: rawPointsStr
+      }));
+
+      // Moving Average polyline ONLY on Weight chart
+      if (showMA) {
+        const maPointsStr = series.map((pt, i) => `${xAt(i).toFixed(1)},${yAt(pt.ma).toFixed(1)}`).join(' ');
+        svg.appendChild(createEl('polyline', {
+          fill: 'none',
+          stroke: '#f59e0b',
+          'stroke-width': '2.5',
+          'stroke-dasharray': '5 4',
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          points: maPointsStr
+        }));
+      }
+
+      // Interactive points + hover/tap tooltip
+      series.forEach((pt, i) => {
+        const cx = xAt(i);
+        const cy = yAt(pt.raw);
+
+        const dot = createEl('circle', {
+          cx,
+          cy,
+          r: series.length > 40 ? '2.5' : '4',
+          fill: meta.stroke,
+          stroke: '#090d16',
+          'stroke-width': '1.5',
+          class: 'cursor-pointer'
+        });
+
+        const showPointTooltip = (evt) => {
+          evt.stopPropagation();
+          const currentWrapRect = wrapper.getBoundingClientRect();
+          const leftPx = Math.min(
+            Math.max(8, cx - 65),
+            Math.max(8, (currentWrapRect.width || width) - 160)
+          );
+          const topPx = Math.max(8, cy - 54);
+          const maLine = `<div class="text-amber-300">MA(${state.settings.maWindow}): <strong>${pt.ma.toFixed(2)} ${meta.unit}</strong></div>`;
+          tooltip.innerHTML = `
+            <div class="text-slate-400">${pt.timestamp}</div>
+            <div style="color:${meta.stroke}">${meta.label}: <strong>${pt.raw.toFixed(meta.dec)} ${meta.unit}</strong></div>
+            ${maLine}
+          `;
+          tooltip.style.left = `${leftPx}px`;
+          tooltip.style.top = `${topPx}px`;
+          tooltip.classList.remove('hidden');
+        };
+
+        dot.addEventListener('mouseenter', showPointTooltip);
+        dot.addEventListener('click', showPointTooltip);
+        dot.addEventListener('touchstart', showPointTooltip, { passive: true });
+        svg.appendChild(dot);
       });
     }
 
-    function renderHistoryList() {
-      const container = document.getElementById('history-list');
+    function renderHistory() {
+      const listEl = document.getElementById('history-list');
       const countBadge = document.getElementById('history-count-badge');
-      countBadge.textContent = state.entries.length;
+      countBadge.textContent = String(state.entries.length);
 
       if (!state.entries.length) {
-        container.innerHTML = `<div class="py-8 text-center text-xs text-slate-500">No measurements logged yet. Use the form above or import a CSV file.</div>`;
+        listEl.innerHTML = '<p class="py-8 text-center text-xs text-slate-500">No measurements recorded yet.</p>';
         return;
       }
 
-      // Render newest first
       const reversed = [...state.entries].reverse();
-      container.innerHTML = reversed
+      listEl.innerHTML = reversed
         .map((entry) => {
-          const { ffm, normFfmi } = computeDerivedMetrics(entry.weight, entry.bf, state.settings.heightCm);
-          const weightBadge = entry.weight !== null
-            ? `<span class="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 font-mono text-xs font-bold">${entry.weight.toFixed(1)} kg</span>`
-            : `<span class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-500 font-mono text-xs">— kg</span>`;
-          const bfBadge = entry.bf !== null
-            ? `<span class="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 font-mono text-xs font-bold">${entry.bf.toFixed(1)}%</span>`
-            : `<span class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-500 font-mono text-xs">— %</span>`;
-          const ffmText = ffm !== null
-            ? `<strong class="text-cyan-300">${ffm.toFixed(1)} kg</strong>`
-            : `<span class="text-slate-500">—</span>`;
-          const ffmiText = normFfmi !== null
-            ? `<strong class="text-emerald-400">${normFfmi.toFixed(1)}</strong>`
-            : `<span class="text-slate-500">—</span>`;
+          const comp = computeEntryComposition(entry.weight, entry.bf, state.settings.heightCm);
+          const wStr = entry.weight !== null ? `${entry.weight.toFixed(1)} kg` : '--';
+          const bfStr = entry.bf !== null ? `${entry.bf.toFixed(1)}%` : '--';
+          const ffmStr = comp.ffmKg !== null ? `${comp.ffmKg.toFixed(1)} kg` : '--';
+          const ffmiStr = comp.normalizedFfmi !== null ? comp.normalizedFfmi.toFixed(2) : '--';
 
           return `
-            <div class="py-3 flex items-center justify-between gap-3 hover:bg-slate-800/30 px-2 rounded-xl transition">
+            <div class="py-3 flex items-center justify-between gap-2">
               <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="font-mono text-xs font-bold text-slate-200">${entry.timestamp}</span>
-                  ${weightBadge}
-                  ${bfBadge}
-                </div>
-                <div class="mt-1 flex items-center gap-3 text-[11px] text-slate-400 font-mono">
-                  <span>FFM: ${ffmText}</span>
-                  <span>Norm. FFMI: ${ffmiText}</span>
+                <div class="text-xs font-mono font-bold text-slate-200">${entry.timestamp}</div>
+                <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono">
+                  <span class="text-emerald-400">W: <strong>${wStr}</strong></span>
+                  <span class="text-rose-400">BF: <strong>${bfStr}</strong></span>
+                  <span class="text-cyan-300">FFM: <strong>${ffmStr}</strong></span>
+                  <span class="text-purple-300">FFMI: <strong>${ffmiStr}</strong></span>
                 </div>
               </div>
-
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="editEntry('${entry.timestamp}')" class="p-2 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Edit">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
+                <button type="button" data-edit-ts="${entry.timestamp}" class="p-2 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-cyan-300 transition" title="Edit">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 14.536H9V11z" />
                   </svg>
                 </button>
-                <button type="button" onclick="requestDeleteEntry('${entry.timestamp}')" class="p-2 rounded-lg bg-slate-800/90 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition" title="Delete">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <button type="button" data-delete-ts="${entry.timestamp}" class="p-2 rounded-lg bg-slate-800/90 hover:bg-rose-500/20 text-rose-400 transition" title="Delete">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" />
                   </svg>
                 </button>
@@ -1085,209 +1021,203 @@
         .join('');
     }
 
-    function syncControlsUI() {
-      // Sample data banner
-      const sampleBanner = document.getElementById('sample-banner');
-      if (state.isDemo && state.entries.length > 0) {
-        sampleBanner.classList.remove('hidden');
-      } else {
-        sampleBanner.classList.add('hidden');
-      }
+    function syncControlUI() {
+      document.getElementById('sample-banner').classList.toggle('hidden', !state.isDemo);
 
-      // Metric tabs
       document.querySelectorAll('.metric-tab').forEach((btn) => {
         const active = btn.dataset.metric === state.settings.activeMetric;
         btn.className = active
-          ? 'metric-tab flex-1 px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap bg-emerald-500 text-slate-950 shadow'
+          ? 'metric-tab flex-1 px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap bg-emerald-500 text-slate-950'
           : 'metric-tab flex-1 px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white';
       });
 
-      // Range buttons
       document.querySelectorAll('.range-btn').forEach((btn) => {
         const active = btn.dataset.range === state.settings.activeRange;
         btn.className = active
-          ? 'range-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 transition shadow'
+          ? 'range-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500 text-slate-950 transition'
           : 'range-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:text-white transition';
       });
 
-      const customBar = document.getElementById('custom-range-bar');
-      if (state.settings.activeRange === 'custom') {
-        customBar.classList.remove('hidden');
-      } else {
-        customBar.classList.add('hidden');
-      }
-
+      document.getElementById('custom-range-bar').classList.toggle('hidden', state.settings.activeRange !== 'custom');
       document.getElementById('input-ma-window').value = state.settings.maWindow;
       document.getElementById('input-height-cm').value = state.settings.heightCm;
+      if (state.settings.customStart) document.getElementById('custom-start').value = state.settings.customStart;
+      if (state.settings.customEnd) document.getElementById('custom-end').value = state.settings.customEnd;
     }
 
     function refreshAll() {
-      syncControlsUI();
+      syncControlUI();
       renderKPIs();
-      renderChart();
-      renderHistoryList();
+      renderSVGChart();
+      renderHistory();
     }
 
     // =========================================================================
-    // 6. CRUD & FORM HANDLERS
+    // 7. FORM HELPERS, TOASTS & MODALS
     // =========================================================================
-    function populateHourDropdown() {
-      const select = document.getElementById('input-hour');
-      if (!select) return;
-      select.innerHTML = Array.from({ length: 24 }, (_, h) => {
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
+        error: 'bg-rose-950/95 border-rose-500/50 text-rose-200',
+        info: 'bg-slate-900/95 border-cyan-500/40 text-slate-100'
+      }[type] || 'bg-slate-900/95 border-slate-700 text-slate-100';
+
+      el.className = `pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-semibold shadow-xl transition-all ${colors}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 2800);
+    }
+
+    let confirmCallback = null;
+    function openConfirmModal(title, message, onConfirm) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+      confirmCallback = onConfirm;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      confirmCallback = null;
+      document.getElementById('confirm-modal').classList.add('hidden');
+    }
+
+    function populateHourSelect() {
+      const sel = document.getElementById('input-hour');
+      sel.innerHTML = Array.from({ length: 24 }, (_, h) => {
         const hh = String(h).padStart(2, '0');
-        return `<option value="${hh}">${hh}:00</option>`;
+        return `<option value="${hh}:00">${hh}:00</option>`;
       }).join('');
     }
 
-    function updateLivePreview() {
-      const rawW = document.getElementById('input-weight').value.trim();
-      const rawBF = document.getElementById('input-bf').value.trim();
-      const wVal = rawW !== '' ? parseFloat(rawW) : NaN;
-      const bfVal = rawBF !== '' ? parseFloat(rawBF) : NaN;
-      const ffmEl = document.getElementById('preview-ffm');
-      const ffmiEl = document.getElementById('preview-ffmi');
-
-      if (!isNaN(wVal) && !isNaN(bfVal) && wVal > 0 && bfVal >= 0 && bfVal < 100) {
-        const snappedW = roundWeight(wVal);
-        const snappedBF = roundBF(bfVal);
-        const { ffm, normFfmi } = computeDerivedMetrics(snappedW, snappedBF, state.settings.heightCm);
-        ffmEl.textContent = `${ffm.toFixed(1)} kg`;
-        ffmiEl.textContent = `${normFfmi.toFixed(1)}`;
-      } else {
-        ffmEl.textContent = '-- kg';
-        ffmiEl.textContent = '--';
-      }
-    }
-
-    window.editEntry = function (timestampStr) {
-      const entry = state.entries.find((e) => e.timestamp === timestampStr);
-      if (!entry) return;
-      state.editingTimestamp = timestampStr;
-      document.getElementById('input-date').value = entry.timestamp.slice(0, 10);
-      document.getElementById('input-hour').value = entry.timestamp.slice(11, 13);
-      document.getElementById('input-weight').value = entry.weight !== null ? entry.weight.toFixed(1) : '';
-      document.getElementById('input-bf').value = entry.bf !== null ? entry.bf.toFixed(1) : '';
-      document.getElementById('entry-form-title').textContent = `Editing ${entry.timestamp}`;
-      document.getElementById('btn-cancel-edit').classList.remove('hidden');
-      updateLivePreview();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.requestDeleteEntry = function (timestampStr) {
-      openConfirmModal(
-        'Delete Measurement',
-        `Remove the record for ${timestampStr}? This cannot be undone unless you have a CSV backup.`,
-        () => {
-          state.entries = state.entries.filter((e) => e.timestamp !== timestampStr);
-          saveState();
-          refreshAll();
-          showToast(`Deleted entry for ${timestampStr}`, 'info');
-        }
-      );
-    };
-
-    function resetEntryForm() {
-      state.editingTimestamp = null;
-      document.getElementById('input-date').value = getLocalTodayISO();
-      document.getElementById('input-hour').value = getCurrentHourPadded();
+    function resetEntryFormToNow() {
+      const now = new Date();
+      document.getElementById('input-date').value = formatLocalDate(now);
+      document.getElementById('input-hour').value = `${String(now.getHours()).padStart(2, '0')}:00`;
       document.getElementById('input-weight').value = '';
       document.getElementById('input-bf').value = '';
+      state.editingTimestamp = null;
       document.getElementById('entry-form-title').textContent = 'Log Measurement';
       document.getElementById('btn-cancel-edit').classList.add('hidden');
-      updateLivePreview();
+      updateEntryPreview();
+    }
+
+    function updateEntryPreview() {
+      const wRaw = document.getElementById('input-weight').value;
+      const bfRaw = document.getElementById('input-bf').value;
+      const w = wRaw !== '' ? roundOneDec(parseFloat(wRaw)) : null;
+      const bf = bfRaw !== '' ? roundHalf(parseFloat(bfRaw)) : null;
+      const comp = computeEntryComposition(w, bf, state.settings.heightCm);
+
+      document.getElementById('preview-ffm').textContent = comp.ffmKg !== null ? `${comp.ffmKg.toFixed(1)} kg` : '-- kg';
+      document.getElementById('preview-ffmi').textContent = comp.normalizedFfmi !== null ? comp.normalizedFfmi.toFixed(2) : '--';
     }
 
     // =========================================================================
-    // 7. CSV EXPORT & IMPORT
+    // 8. CSV SERIALIZATION & LOCAL EXPORT / IMPORT
     // =========================================================================
-    function exportCSV() {
+    function entriesToCSV(entriesList) {
+      const header = 'timestamp,weight_kg,body_fat_pct,ffm_kg,normalized_ffmi';
+      const rows = entriesList.map((e) => {
+        const comp = computeEntryComposition(e.weight, e.bf, state.settings.heightCm);
+        const w = e.weight !== null ? e.weight.toFixed(1) : '';
+        const bf = e.bf !== null ? e.bf.toFixed(1) : '';
+        const ffm = comp.ffmKg !== null ? comp.ffmKg.toFixed(2) : '';
+        const ffmi = comp.normalizedFfmi !== null ? comp.normalizedFfmi.toFixed(2) : '';
+        return `${e.timestamp},${w},${bf},${ffm},${ffmi}`;
+      });
+      return [header, ...rows].join('\n');
+    }
+
+    function exportLocalCSV() {
       if (!state.entries.length) {
-        showToast('No records to export yet.', 'error');
+        showToast('No records available to export.', 'error');
         return;
       }
-
-      const header = 'timestamp,weight_kg,body_fat_pct,ffm_kg,normalized_ffmi';
-      const rows = state.entries.map((e) => {
-        const wStr = e.weight !== null ? e.weight.toFixed(1) : '';
-        const bfStr = e.bf !== null ? e.bf.toFixed(1) : '';
-        const { ffm, normFfmi } = computeDerivedMetrics(e.weight, e.bf, state.settings.heightCm);
-        const ffmStr = ffm !== null ? ffm.toFixed(1) : '';
-        const ffmiStr = normFfmi !== null ? normFfmi.toFixed(1) : '';
-        return `${e.timestamp},${wStr},${bfStr},${ffmStr},${ffmiStr}`;
-      });
-
-      const csvContent = [header, ...rows].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const csvText = entriesToCSV(state.entries);
+      const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `body_metrics_${getLocalTodayISO()}.csv`;
+      a.download = `kinetix_body_log_${formatLocalDate(new Date())}.csv`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       URL.revokeObjectURL(url);
-      showToast(`Exported ${state.entries.length} records to CSV`, 'success');
+      showToast(`Exported ${state.entries.length} records to CSV.`, 'success');
     }
 
-    function importCSVFile(file) {
-      if (!file) return;
+    function handleImportCSVFile(file) {
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = (evt) => {
         try {
-          const text = String(ev.target.result || '');
-          const lines = text
-            .split(/\r?\n/)
-            .map((l) => l.trim())
-            .filter(Boolean);
-
+          const text = String(evt.target?.result || '');
+          const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
           if (!lines.length) {
             showToast('CSV file is empty.', 'error');
             return;
           }
 
-          let importedCount = 0;
-          const entryMap = new Map(state.entries.map((e) => [e.timestamp, e]));
+          const firstCols = lines[0].toLowerCase().split(',').map((c) => c.trim());
+          const hasHeader = firstCols.includes('timestamp') || firstCols.includes('date') || firstCols.includes('weight_kg');
+          const startIdx = hasHeader ? 1 : 0;
 
-          lines.forEach((line, idx) => {
-            const cols = line.split(',').map((c) => c.trim().replace(/^["']|["']$/g, ''));
-            if (cols.length < 2) return;
+          let tsIdx = 0;
+          let wIdx = 1;
+          let bfIdx = 2;
+          if (hasHeader) {
+            const foundTs = firstCols.findIndex((c) => c === 'timestamp' || c === 'date');
+            const foundW = firstCols.findIndex((c) => c.startsWith('weight'));
+            const foundBf = firstCols.findIndex((c) => c.includes('fat') || c === 'bf');
+            if (foundTs !== -1) tsIdx = foundTs;
+            if (foundW !== -1) wIdx = foundW;
+            if (foundBf !== -1) bfIdx = foundBf;
+          }
 
-            // Skip header row if first column is not a valid date/timestamp
-            const ts = normalizeTimestampString(cols[0]);
-            if (!ts) {
-              if (idx === 0) return;
-              return;
+          const mergedMap = new Map();
+          if (!state.isDemo) {
+            for (const existing of state.entries) {
+              mergedMap.set(existing.timestamp, { ...existing });
             }
+          }
 
-            const rawW = cols[1] !== undefined && cols[1] !== '' ? parseFloat(cols[1]) : NaN;
-            const rawBF = cols[2] !== undefined && cols[2] !== '' ? parseFloat(cols[2]) : NaN;
+          let importedCount = 0;
+          for (let i = startIdx; i < lines.length; i++) {
+            const cols = lines[i].split(',').map((c) => c.trim());
+            const ts = normalizeTimestamp(cols[tsIdx]);
+            if (!ts) continue;
 
-            const validW = !isNaN(rawW) && rawW > 0 ? roundWeight(rawW) : null;
-            const validBF = !isNaN(rawBF) && rawBF >= 0 && rawBF < 100 ? roundBF(rawBF) : null;
+            const wVal = cols[wIdx] !== undefined && cols[wIdx] !== '' ? parseFloat(cols[wIdx]) : NaN;
+            const bfVal = cols[bfIdx] !== undefined && cols[bfIdx] !== '' ? parseFloat(cols[bfIdx]) : NaN;
+            const weight = Number.isFinite(wVal) && wVal > 0 ? roundOneDec(wVal) : null;
+            const bf = Number.isFinite(bfVal) && bfVal >= 0 && bfVal < 100 ? roundHalf(bfVal) : null;
 
-            if (validW === null && validBF === null) return;
+            if (weight === null && bf === null) continue;
 
-            entryMap.set(ts, {
+            const prev = mergedMap.get(ts) || { timestamp: ts, weight: null, bf: null };
+            mergedMap.set(ts, {
               timestamp: ts,
-              weight: validW,
-              bf: validBF
+              weight: weight !== null ? weight : prev.weight,
+              bf: bf !== null ? bf : prev.bf
             });
             importedCount++;
-          });
+          }
 
-          if (importedCount === 0) {
-            showToast('No valid rows found. Expected: timestamp,weight_kg,body_fat_pct', 'error');
+          if (!importedCount) {
+            showToast('No valid rows found in CSV.', 'error');
             return;
           }
 
-          state.entries = Array.from(entryMap.values());
+          state.entries = Array.from(mergedMap.values());
           state.isDemo = false;
           saveState();
           refreshAll();
-          showToast(`Imported & merged ${importedCount} records!`, 'success');
+          showToast(`Imported ${importedCount} CSV records.`, 'success');
         } catch (err) {
-          console.error(err);
           showToast('Failed to parse CSV file.', 'error');
         }
       };
@@ -1295,77 +1225,106 @@
     }
 
     // =========================================================================
-    // 8. EVENT LISTENERS & INITIALIZATION
+    // 9. INITIALIZATION & EVENT WIRING
     // =========================================================================
     document.addEventListener('DOMContentLoaded', () => {
-      populateHourDropdown();
+      populateHourSelect();
       loadState();
+      resetEntryFormToNow();
 
-      // Default form date to today & current hour
-      const today = getLocalTodayISO();
-      document.getElementById('input-date').value = today;
-      document.getElementById('input-hour').value = getCurrentHourPadded();
-      if (!state.settings.customEnd) state.settings.customEnd = today;
-      if (!state.settings.customStart) state.settings.customStart = shiftDateISO(today, -30);
-      document.getElementById('custom-start').value = state.settings.customStart;
-      document.getElementById('custom-end').value = state.settings.customEnd;
-
-      // Live preview on weight / body fat typing
-      document.getElementById('input-weight').addEventListener('input', updateLivePreview);
-      document.getElementById('input-bf').addEventListener('input', updateLivePreview);
-
-      // Save entry submit (supports Weight alone, BF% alone, or both)
+      // Entry form submit
       document.getElementById('entry-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const dateVal = document.getElementById('input-date').value;
-        const hourVal = document.getElementById('input-hour').value;
-        const rawWStr = document.getElementById('input-weight').value.trim();
-        const rawBFStr = document.getElementById('input-bf').value.trim();
+        const hourVal = document.getElementById('input-hour').value || '08:00';
+        const wRaw = document.getElementById('input-weight').value;
+        const bfRaw = document.getElementById('input-bf').value;
 
         if (!dateVal) {
-          showToast('Please select a valid date.', 'error');
+          showToast('Please select a date.', 'error');
+          return;
+        }
+        if (wRaw === '' && bfRaw === '') {
+          showToast('Enter at least Weight or Body Fat %.', 'error');
           return;
         }
 
-        const parsedW = rawWStr !== '' ? parseFloat(rawWStr) : NaN;
-        const parsedBF = rawBFStr !== '' ? parseFloat(rawBFStr) : NaN;
+        const timestamp = `${dateVal} ${hourVal}`;
+        const weight = wRaw !== '' ? roundOneDec(parseFloat(wRaw)) : null;
+        const bf = bfRaw !== '' ? roundHalf(parseFloat(bfRaw)) : null;
 
-        const hasW = !isNaN(parsedW) && parsedW > 0;
-        const hasBF = !isNaN(parsedBF) && parsedBF >= 0 && parsedBF < 100;
-
-        if (!hasW && !hasBF) {
-          showToast('Enter Weight (kg), Body Fat (%), or both.', 'error');
-          return;
+        if (state.isDemo) {
+          state.entries = [];
+          state.isDemo = false;
         }
 
-        const ts = formatTimestamp(dateVal, hourVal);
-        const snappedW = hasW ? roundWeight(parsedW) : null;
-        const snappedBF = hasBF ? roundBF(parsedBF) : null;
-
-        // If editing an old timestamp and changing the timestamp key, remove the old entry
-        if (state.editingTimestamp && state.editingTimestamp !== ts) {
+        if (state.editingTimestamp && state.editingTimestamp !== timestamp) {
           state.entries = state.entries.filter((item) => item.timestamp !== state.editingTimestamp);
         }
 
-        const existingIdx = state.entries.findIndex((item) => item.timestamp === ts);
-        if (existingIdx >= 0) {
-          state.entries[existingIdx] = { timestamp: ts, weight: snappedW, bf: snappedBF };
+        const existingIdx = state.entries.findIndex((item) => item.timestamp === timestamp);
+        if (existingIdx !== -1) {
+          const prev = state.entries[existingIdx];
+          state.entries[existingIdx] = {
+            timestamp,
+            weight: weight !== null ? weight : prev.weight,
+            bf: bf !== null ? bf : prev.bf
+          };
         } else {
-          state.entries.push({ timestamp: ts, weight: snappedW, bf: snappedBF });
+          state.entries.push({ timestamp, weight, bf });
         }
 
-        state.isDemo = false;
         saveState();
-        resetEntryForm();
+        resetEntryFormToNow();
         refreshAll();
-
-        const summaryParts = [];
-        if (snappedW !== null) summaryParts.push(`${snappedW.toFixed(1)} kg`);
-        if (snappedBF !== null) summaryParts.push(`${snappedBF.toFixed(1)}% BF`);
-        showToast(`Saved [${ts}] · ${summaryParts.join(' · ')}`, 'success');
+        showToast(`Saved ${timestamp}`, 'success');
       });
 
-      document.getElementById('btn-cancel-edit').addEventListener('click', resetEntryForm);
+      document.getElementById('input-weight').addEventListener('input', updateEntryPreview);
+      document.getElementById('input-bf').addEventListener('input', updateEntryPreview);
+
+      document.getElementById('btn-cancel-edit').addEventListener('click', resetEntryFormToNow);
+
+      // History edit & delete delegation
+      document.getElementById('history-list').addEventListener('click', (e) => {
+        const editBtn = e.target.closest('[data-edit-ts]');
+        if (editBtn) {
+          const ts = editBtn.dataset.editTs;
+          const entry = state.entries.find((item) => item.timestamp === ts);
+          if (!entry) return;
+          state.editingTimestamp = ts;
+          document.getElementById('input-date').value = ts.slice(0, 10);
+          document.getElementById('input-hour').value = ts.slice(11, 16);
+          document.getElementById('input-weight').value = entry.weight !== null ? entry.weight.toFixed(1) : '';
+          document.getElementById('input-bf').value = entry.bf !== null ? entry.bf.toFixed(1) : '';
+          document.getElementById('entry-form-title').textContent = `Editing ${ts}`;
+          document.getElementById('btn-cancel-edit').classList.remove('hidden');
+          updateEntryPreview();
+          document.getElementById('entry-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        const delBtn = e.target.closest('[data-delete-ts]');
+        if (delBtn) {
+          const ts = delBtn.dataset.deleteTs;
+          openConfirmModal('Delete Record', `Remove measurement from ${ts}?`, () => {
+            state.entries = state.entries.filter((item) => item.timestamp !== ts);
+            if (state.editingTimestamp === ts) resetEntryFormToNow();
+            saveState();
+            refreshAll();
+            showToast(`Deleted ${ts}`, 'info');
+          });
+        }
+      });
+
+      // Clear demo data
+      document.getElementById('btn-clear-sample').addEventListener('click', () => {
+        state.entries = [];
+        state.isDemo = false;
+        saveState();
+        refreshAll();
+        showToast('Demo records cleared.', 'info');
+      });
 
       // Metric tabs
       document.querySelectorAll('.metric-tab').forEach((btn) => {
@@ -1376,51 +1335,49 @@
         });
       });
 
-      // Timeframe buttons
+      // Range buttons
       document.querySelectorAll('.range-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
           state.settings.activeRange = btn.dataset.range;
+          if (state.settings.activeRange === 'custom') {
+            if (!state.settings.customEnd) state.settings.customEnd = formatLocalDate(new Date());
+            if (!state.settings.customStart) {
+              const startD = new Date();
+              startD.setDate(startD.getDate() - 30);
+              state.settings.customStart = formatLocalDate(startD);
+            }
+          }
           saveState();
           refreshAll();
         });
       });
 
-      // Custom date inputs
       document.getElementById('custom-start').addEventListener('change', (e) => {
         state.settings.customStart = e.target.value;
         saveState();
-        renderChart();
+        refreshAll();
       });
+
       document.getElementById('custom-end').addEventListener('change', (e) => {
         state.settings.customEnd = e.target.value;
         saveState();
-        renderChart();
+        refreshAll();
       });
 
-      // Moving Average window customizer
+      // Moving average window
       document.getElementById('input-ma-window').addEventListener('change', (e) => {
-        const val = Math.max(1, Math.min(60, parseInt(e.target.value, 10) || 3));
-        e.target.value = val;
+        const val = Math.min(60, Math.max(1, parseInt(e.target.value, 10) || 3));
         state.settings.maWindow = val;
         saveState();
-        renderChart();
+        refreshAll();
       });
 
-      // Slope math drawer toggle
+      // Slope math info drawer
       document.getElementById('btn-slope-info').addEventListener('click', () => {
         document.getElementById('slope-info-drawer').classList.toggle('hidden');
       });
 
-      // Clear demo sample data
-      document.getElementById('btn-clear-sample').addEventListener('click', () => {
-        state.entries = [];
-        state.isDemo = false;
-        saveState();
-        refreshAll();
-        showToast('Sample data cleared. Ready for your records!', 'info');
-      });
-
-      // Height modal controls
+      // Height modal
       const heightModal = document.getElementById('height-modal');
       document.getElementById('btn-height-modal').addEventListener('click', () => {
         document.getElementById('input-height-cm').value = state.settings.heightCm;
@@ -1432,34 +1389,49 @@
       document.getElementById('btn-save-height').addEventListener('click', () => {
         const h = parseFloat(document.getElementById('input-height-cm').value);
         if (isNaN(h) || h < 100 || h > 250) {
-          showToast('Please enter a valid height between 100 and 250 cm.', 'error');
+          showToast('Enter a height between 100 and 250 cm.', 'error');
           return;
         }
         state.settings.heightCm = roundOneDec(h);
         saveState();
         heightModal.classList.add('hidden');
-        updateLivePreview();
+        updateEntryPreview();
         refreshAll();
-        showToast(`Height updated to ${state.settings.heightCm} cm`, 'success');
+        showToast(`Height set to ${state.settings.heightCm} cm`, 'success');
       });
 
-      // Confirm modal controls
+      // Confirm modal buttons
       document.getElementById('btn-confirm-cancel').addEventListener('click', closeConfirmModal);
       document.getElementById('btn-confirm-ok').addEventListener('click', () => {
         if (typeof confirmCallback === 'function') confirmCallback();
         closeConfirmModal();
       });
 
-      // CSV Export & Import triggers
-      document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
-      document.getElementById('btn-export-csv-bottom').addEventListener('click', exportCSV);
+      // Local CSV Export & Import
+      document.getElementById('btn-export-csv').addEventListener('click', exportLocalCSV);
+      document.getElementById('btn-export-csv-bottom').addEventListener('click', exportLocalCSV);
       document.getElementById('csv-file-input').addEventListener('change', (e) => {
         const file = e.target.files?.[0];
-        if (file) importCSVFile(file);
-        e.target.value = '';
+        if (file) {
+          handleImportCSVFile(file);
+          e.target.value = '';
+        }
       });
 
-      refreshAll();
+      // Hide tooltip when tapping outside chart points
+      document.getElementById('chart-wrapper').addEventListener('click', () => {
+        document.getElementById('chart-tooltip').classList.add('hidden');
+      });
+
+      // Responsive chart redraw on resize
+      let resizeTimer = null;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => renderSVGChart(), 100);
+      });
+
+      // Initial render after layout paint
+      requestAnimationFrame(() => refreshAll());
     });
   </script>
 </body>
